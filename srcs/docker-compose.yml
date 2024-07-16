@@ -1,0 +1,73 @@
+version : '3.8'
+
+services:
+  ContainerDB:
+    image: mariadb:jaehejun
+    container_name: mariadb
+    build:
+      context: ./requirements/mariadb
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    restart: always
+    volumes:
+      - DB:/var/lib/mysql
+    #expose:
+    # - "3306"
+    networks:
+      - docker-network
+  
+  ContainerWordpPress:
+    image: wordpress:jaehejun
+    build:
+      context: ./requirements/wordpress
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    restart: always
+    depends_on:
+      - ContainerDB
+    volumes:
+      - WordPress:/var/www/html
+    #expose:
+    # - "9000"
+    networks:
+      - docker-network
+  
+  ContainerNGINX:
+    image: nginx:jaehejun
+    build:
+      context: ./requirements/ngninx
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    ports:
+     - "443:443"
+    restart: always
+    depends_on:
+      - ContainerWordPress
+    volumes:
+      - WordPress:/var/www/html
+    networks:
+      - docker-network
+
+volumes:
+  DB:
+    name: db
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /home/jaehejun/data/db
+  WordPress:
+    name: wp
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /home/jaehejun/data/wp
+
+networks:
+  docker-network:
+    name: dockernet
+    driver: bridge
