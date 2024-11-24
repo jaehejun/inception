@@ -1,73 +1,78 @@
 version : '3.8'
 
 services:
-  ContainerDB:
-    image: mariadb:jaehejun
-    container_name: mariadb
+  mariadb:
+    image: mariadb:inception
+    container_name : mariadb
     build:
       context: ./requirements/mariadb
       dockerfile: Dockerfile
+    expose:
+    - "3306"
+    networks:
+      - inception-network
+    # ports:
+    #   - "3306:3306"
+    volumes:
+      - db_vol:/var/lib/mysql
     env_file:
       - .env
     restart: always
-    volumes:
-      - DB:/var/lib/mysql
-    #expose:
-    # - "3306"
-    networks:
-      - docker-network
-  
-  ContainerWordpPress:
-    image: wordpress:jaehejun
+
+  wordpress:
+    image: wordpress:inception
+    container_name : wordpress
     build:
       context: ./requirements/wordpress
       dockerfile: Dockerfile
+    depends_on:
+      - mariadb
+    expose:
+    - "9000"
+    networks:
+      - inception-network
+    # ports:
+    #   - "8080:80"
+    volumes:
+      - wp_vol:/var/www/html
     env_file:
       - .env
     restart: always
-    depends_on:
-      - ContainerDB
-    volumes:
-      - WordPress:/var/www/html
-    #expose:
-    # - "9000"
-    networks:
-      - docker-network
-  
-  ContainerNGINX:
-    image: nginx:jaehejun
+
+  nginx:
+    image: nginx:inception
+    container_name : nginx
     build:
-      context: ./requirements/ngninx
+      context: ./requirements/nginx
       dockerfile: Dockerfile
-    env_file:
-      - .env
+    depends_on:
+      - wordpress
+    networks:
+      - inception-network
     ports:
      - "443:443"
-    restart: always
-    depends_on:
-      - ContainerWordPress
     volumes:
-      - WordPress:/var/www/html
-    networks:
-      - docker-network
+      - wp_vol:/var/www/html
+    env_file:
+      - .env
+    restart: always
 
 volumes:
-  DB:
-    name: db
+  db_vol:
+    name: 1_db
     driver: local
     driver_opts:
-      type: none
+      device: /Users/jaehejun/desktop/inception/1_db
       o: bind
-      device: /home/jaehejun/data/db
-  WordPress:
-    name: wp
+      type: none
+  wp_vol:
+    name: 2_wp
     driver: local
     driver_opts:
-      type: none
+      device: /Users/jaehejun/desktop/inception/2_wp
       o: bind
-      device: /home/jaehejun/data/wp
+      type: none
 
 networks:
-  docker-network:
-    name: dockernet
+  inception-network:
     driver: bridge
