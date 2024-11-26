@@ -9,6 +9,10 @@ while ! mysqladmin ping --silent; do
     sleep 1
 done
 
+# 50-server.cnf 파일의 bind-address를 0.0.0.0 으로 변경해 외부(wordpress)에서도 접속이 가능하게 설정
+sed -i 's/^bind-address\s*=\s*127.0.0.1/bind-address = 0.0.0.0/' /etc/mysql/mariadb.conf.d/50-server.cnf
+
+
 # 데이터베이스가 초기화되지 않았는지 확인(데이터베이스 이미 존재하면 mysqld_safe만 실행)
 if [ ! -d "/var/lib/mysql/$WORDPRESS_DB" ]; then
     # root 비밀번호 설정

@@ -11,8 +11,6 @@ services:
     - "3306"
     networks:
       - inception-network
-    # ports:
-    #   - "3306:3306"
     volumes:
       - db_vol:/var/lib/mysql
     env_file:
@@ -31,8 +29,6 @@ services:
     - "9000"
     networks:
       - inception-network
-    # ports:
-    #   - "8080:80"
     volumes:
       - wp_vol:/var/www/html
     env_file:
